@@ -104,7 +104,7 @@ def compute_fm_loss(real_feats, fake_feats, criterion='HingeEmbeddingLoss'):
         criterion = nn.HingeEmbeddingLoss()
     losses = 0
     for real_feat, fake_feat in zip(real_feats, fake_feats):
-        l2 = (real_feat.mean(0) - fake_feat.mean(0)) * (real_feat.mean(0) - fake_feat.mean(0))
+        l2 = (real_feat.mean() - fake_feat.mean()) * (real_feat.mean() - fake_feat.mean())
         loss = criterion(l2, Variable(torch.ones(l2.size())))
         losses += loss
     return losses

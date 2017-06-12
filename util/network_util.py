@@ -3,6 +3,8 @@ import math
 import numpy as np
 from G.netG import _netG
 from D.netD import _netD
+from G.netG_fm import _netGFM
+from D.netD_fm import _netDFM
 from CG.netCG import _netCG
 from G.netG import build_netG
 
@@ -48,7 +50,7 @@ def init_network(nets):
     - Params:
     @nets: _netG type for weight_init; other types call init_network again util nets belong to _netG
     '''
-    if isinstance(nets, _netG) or isinstance(nets, _netD) or isinstance(nets, _netCG):
+    if isinstance(nets, _netG) or isinstance(nets, _netD) or isinstance(nets, _netCG) or isinstance(nets, _netGFM) or isinstance(nets, _netDFM):
         print nets.info() + ':initing..'
         nets.apply(weight_init)
     else:

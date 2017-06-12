@@ -70,6 +70,6 @@ def build_netD(cfg_index, x_dim = 0, hidden = False, c_dim = 0, batch_norm=False
     return _netD(layers = network, hidden = hidden)
 
 if __name__ == '__main__':
-    network = create_convnets_D(netDNumConfig['fc_competition'], x_dim = 3, c_dim=0)
+    network = create_convnets_D(netDNumConfig['dcgans'], x_dim = 1, c_dim=0)
     netD = _netD(layers = network)
     print netD

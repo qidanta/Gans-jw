@@ -8,6 +8,16 @@ netDNumConfig = {
     'fc_layer_sub_remain': ['1', 'S'],
     'mnist_classfier': ['128', 'R', '10', 'Softmax'],
     'dcgans': [(64, 4, 2, 1), 'LR', (128, 4, 2, 1), 'B', 'LR', (256, 4, 2, 1), 'B', 'LR', (512, 4, 2, 1), 'B', 'LR', (1, 4, 1, 0), 'S'],
+    'dcgans_sub1': [(64, 4, 2, 1), 'LR'],
+    'dcgans_sub2': [(128, 4, 2, 1), 'B', 'LR'],
+    'dcgans_sub3': [(256, 4, 2, 1), 'B', 'LR'],
+    'dcgans_sub4': [(512, 4, 2, 1), 'B', 'LR'],
+    'dcgans_remain': [(1, 4, 1, 0), 'S'],
+    'dcgans_nob_sub1': [(64, 4, 2, 1), 'LR'],
+    'dcgans_nob_sub2': [(128, 4, 2, 1), 'LR'],
+    'dcgans_nob_sub3': [(256, 4, 2, 1), 'LR'],
+    'dcgans_nob_sub4': [(512, 4, 2, 1), 'LR'],
+    'dcgans_logint': [(1, 4, 1, 0)],
     'dcgans-mnist': [(64, 4, 2, 1), 'LR', (128, 4, 2, 1), 'B', 'LR', (256, 4, 2, 1), 'B', 'LR', (512, 4, 2, 1), 'B', 'LR', (1, 4, 1, 0), 'S'],
     'chainer-dcgans': [(32, 3, 2, 1), 'LR', (32, 3, 2, 2), 'B', 'LR', (32, 3, 2, 1), 'B', 'LR', (32, 3, 2, 1), 'B', 'LR', (1, 3, 2, 1), 'S']
 }

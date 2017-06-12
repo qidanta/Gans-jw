@@ -196,7 +196,7 @@ def testL1():
     print (split_down_loss + split_up_loss)/2
 
 def testmean():
-    X = torch.ones(2, 784)
+    X = torch.ones(1, 784)
     X_split = torch.ones(1, 784)
     x_list = (X, X_split)
     print X.mean(0)

@@ -1,7 +1,7 @@
 import os
 
 import torch
-#from pycrayon import CrayonClient
+from pycrayon import CrayonClient
 
 import torchvision.utils as vutils
 from util.vision_util import create_sigle_experiment

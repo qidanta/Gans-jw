@@ -72,6 +72,6 @@ def build_netG(cfg_index, z_dim = 0, c_dim = 0, batch_norm=False):
 
 
 if __name__ == '__main__':
-    network = create_convnets_G(netNumGConfig['fc_competition'], 100, 0)
+    network = create_convnets_G(netNumGConfig['dcgans'], 100, 0)
     netG = _netG(layers = network)
     print netG

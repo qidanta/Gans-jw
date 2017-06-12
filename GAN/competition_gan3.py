@@ -1,5 +1,5 @@
-import argparse
 import os
+import random
 
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
@@ -12,11 +12,12 @@ from D.netD_fm import build_netDFM
 from G.netG_fm import build_netGFM
 from util.network_util import create_nets, init_network
 from util.solver_util import create_optims
-from util.train_util import find_best_netG, find_best_netG_v1dot1, find_best_netG_v1dot2, link2condition_data
+from util.train_util import (find_best_netG, find_best_netG_v1dot1,
+                             find_best_netG_v1dot2, link2condition_data, compute_fm_loss)
 from util.vision_util import create_sigle_experiment
-import random
 
-#v1.4.5
+
+#v3 base model
 class _competitionGan(_baseModel):
     def __init__(self, opt):
         super(_competitionGan, self).__init__(opt)
@@ -30,8 +31,8 @@ class _competitionGan(_baseModel):
         self.savepath = opt.savepath
         self.cnt = 0
 
-        self.netG = build_netGFM(opt.g_model, opt.z_dim)
-        self.netD = build_netDFM(opt.d_model, opt.x_dim, opt.condition_D)
+        self.netG = build_netGFM(opt.g_model, opt.z_dim, gans_type=opt.gans_type)
+        self.netD = build_netDFM(opt.d_model, opt.x_dim, gans_type=opt.gans_type)
 
 
         X = torch.FloatTensor(opt.mb_size, opt.x_dim, opt.img_size, opt.img_size)
@@ -65,15 +66,15 @@ class _competitionGan(_baseModel):
         if self.opt.cc:
             self.create_tensorboard()
             self.index_exp = create_sigle_experiment(self.cc, 'index')
-        self.D_solver = torch.optim.Adam(self.netD.parameters(), lr=2e-4, betas=(0.5, 0.999))
-        self.G_solvers = torch.optim.Adam(self.netD.parameters(), lr=2e-4, betas=(0.5, 0.999))
+        self.D_solver = torch.optim.Adam(self.netD.parameters(), lr=1e-3, betas=(0.5, 0.999))
+        self.G_solver = torch.optim.Adam(self.netG.parameters(), lr=1e-3, betas=(0.5, 0.999))
 
         if opt.train == False:
             self.load_networkG(self.opt.g_network_path)
             self.load_networkD(self.opt.d_network_path)
         else:
             init_network(self.netD)
-            init_network(self.netGs)
+            init_network(self.netG)
     
     def draft_data(self, input, target):
         self.mb_size = input.size(0)
@@ -85,66 +86,36 @@ class _competitionGan(_baseModel):
         self.Z.data.resize_(self.mb_size, self.z_dim).normal_(0, 1)
         self.label.data.resize_(self.mb_size)
 
-    def banetG import build_netGckwarnetG import build_netGd_D(self):
+    def backward_D(self):
         self.fake, self.fake_fm = self.netG(self.Z)
-        self.D_fake = self.netD(self.fake)
+        self.D_fake, _ = self.netD(self.fake)
 
-        self.real, self.real_fm = self.netG(self.X)
-        self.D_real  = self.netD(self.real)
+        self.D_real, self.real_fm  = self.netD(self.X)
 
         # real-backward
         self.label.data.fill_(1)
         self.loss_D_real = self.criterionGAN(self.D_real, self.label)
+        self.loss_D_real.backward(retain_variables=True)
 
         # fake-backward
         self.label.data.fill_(0)
         self.loss_D_fake = self.criterionGAN(self.D_fake, self.label)
+        self.loss_D_fake.backward(retain_variables=True)
 
         # lambda
         self.loss_D = self.loss_D_real + self.loss_D_fake
-        self.loss_D.backward(retain_variables=True)
+        #self.loss_D.backward(retain_variables=True)
         self.cnt = self.cnt + 1
 
     def backward_G(self):  
-        # best index of netG
-        if self.opt.find_version == 'v1.2':
-            index = find_best_netG_v1dot2(self.D_real, self.D_fake)
-        if self.opt.find_version == 'v1.1':
-            index = find_best_netG_v1dot1(self.criterionL1, self.fake, self.X)
-        else:
-            index = find_best_netG(self.D_fake)
-
-        # in v1.4.4, compute prob of sample after index. take index as fake label
-        sample = self.fake[index]
-        D_fakes = []
-        for i in range(self.nums):
-            if self.condition_D:
-                self.condition_data.data.copy_(link2condition_data(sample.data, index))
-                D_fake = self.netD(self.condition_data)
-            else:
-                D_fake = self.netD(sample)
-            D_fakes.append(D_fake)
-        
-        # random choice index(best netG index)
-        if self.opt.random and self.cnt % self.opt.display_it == 0:
-            index = random.randint(0, self.nums-1)
-        
-        self.fake_like_sample.data.copy_(self.fake[index].data)
+        D_fake, _ = self.netD(self.fake)
 
         self.label.data.fill_(1)
-        for netG in self.netGs:
-            netG.zero_grad()
-        for i in range(self.nums):
-            self.loss_G = self.criterionGAN(D_fakes[i], self.label)
-            if i == index:
-                self.loss_G_lambda = self.criterionL1(self.fake[index], self.X)  * self.Lambda
-                self.loss_G += self.loss_G_lambda
-                self.loss_G.backward(retain_variables=True)
-            else:
-                self.loss_G.backward(retain_variables=True)
-            self.G_solvers[i].step()
+        self.loss_G = self.criterionGAN(D_fake, self.label)
+        self.fake_like_sample.data.copy_(self.fake.data)
 
-        self.best_netG_index = index
+        self.loss_G.backward(retain_variables=True)
+        self.best_netG_index = 0
     
     def train(self, input, target):
         self.draft_data(input, target)
@@ -153,9 +124,9 @@ class _competitionGan(_baseModel):
         self.backward_D()
         self.D_solver.step()
 
+        self.netG.zero_grad()
         self.backward_G()
-        # remove netG's backward and step to backward_G()
-        # self.G_solvers[self.best_netG_index].step()
+        self.G_solver.step()
         self.visual()
 
     def continue_train(self, input):
@@ -192,11 +163,9 @@ class _competitionGan(_baseModel):
             netG.load_state_dict(torch.load(g_network_path))
     
     def save_network(self, it, savepath):
-        if self.train:
-            for i in range(self.nums):
-                torch.save(self.netGs[self.best_netG_index].state_dict(), '{}/epoch_{}_netG{}.pth'.format(savepath, it, i))
-        else:
-            torch.save(self.netGs[self.best_netG_index].state_dict(), '{}/epoch_{}_netG{}.pth'.format(savepath, it, self.best_netG_index))
+        print 'training-result-netGPth: iters_{}netG.pth/index_{}/storing'.format(it, self.best_netG_index)
+        torch.save(self.netG.state_dict(), '{}/netG_epoch_{}_index_{}.pth' .format(savepath, it, self.best_netG_index))
+        print 'training-result-netDPth: iters_{}netD.pth/storing'.format(it)
         torch.save(self.netD.state_dict(), '{}/netD_epoch_{}.pth' .format(savepath, it))
 
     def save_image(self, fake, it , savepath):
@@ -226,12 +195,14 @@ class _competitionGan(_baseModel):
         else:
             plt.savefig(self.savepath+ '/{}.png'.format(str(it)), bbox_inches='tight')
 
-    def store(self):
-        print '{}_store...'.format(self.cnt)
+    def store(self, epoch):
+        print 'store: [{}/{}]'.format(epoch, self.opt.niter)
+        print '=========='
         if not os.path.exists(self.savepath):
             os.makedirs(self.savepath)
         self.save_network(self.cnt, self.savepath)
         self.save_image(self.fake_like_sample, self.cnt, self.savepath)
+        print '=========='
 
     def visual(self):
         if self.cc:
@@ -240,18 +211,20 @@ class _competitionGan(_baseModel):
             self.index_exp.add_scalar_value('index', self.best_netG_index, step=self.cnt)
     
     def __str__(self):
-        netG = ''
-        for G in self.netGs:
-            netG += G.__str__()
+        netG = self.netG.__str__()
         netD = self.netD.__str__()
-        return 'Gan:\n' + '{}_{}{}'.format('v1.4.4', netG, netD)
+        return 'Gan:\n' + '{}_{}{}'.format('v3', netG, netD)
 
     def gan_type(self):
         '''print what the gan's type
         '''
         return {'G': self.opt.g_model, 'D': self.opt.d_model}
-
     
+    def info(self):
+        '''print what the gan's type
+        '''
+        return {'CG': self.opt.g_model, 'D': self.opt.d_model, 'X': self.X.data.size(), 'Z': self.Z.data.size(), 'label': self.label.data.size()}
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
