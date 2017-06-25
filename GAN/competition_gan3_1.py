@@ -48,10 +48,10 @@ class _competitionGan(_baseModel):
         self.criterionL1 = torch.nn.L1Loss()
 
         if self.cuda:
-            netD.cuda()
-            netG.cuda()
+            self.netD.cuda()
+            self.netG.cuda()
             self.criterionGAN.cuda()
-            self.L1loss.cuda()
+            self.criterionL1.cuda()
             X, Z = X.cuda(), Z.cuda()
             condition_data = condition_data.cuda()
             real_like_sample, fake_like_sample = real_like_sample.cuda(), fake_like_sample.cuda()
@@ -180,7 +180,11 @@ class _competitionGan(_baseModel):
         @it: number of iterations
         @savepath: in savepath, save network parameter
         '''
-        samples = fake.data.resize_(self.mb_size, 1, self.opt.img_size, self.opt.img_size).numpy()[:16]
+        if self.opt.cuda:
+            samples = fake.data.cpu()
+            samples = samples.resize_(self.mb_size, self.opt.x_dim, self.opt.img_size, self.opt.img_size).numpy()[:16]
+        else:
+            samples = fake.data.resize_(self.mb_size, self.opt.x_dim, self.opt.img_size, self.opt.img_size).numpy()[:16]
 
         fig = plt.figure(figsize=(4, 4))
         gs = gridspec.GridSpec(4, 4)

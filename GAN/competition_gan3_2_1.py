@@ -23,6 +23,7 @@ class _competitionGan(_baseModel):
     def __init__(self, opt):
         super(_competitionGan, self).__init__(opt)
         self.opt = opt
+        self.type = 'v3.2.1'
         self.x_dim = opt.x_dim
         self.z_dim = opt.z_dim
         self.condition_D = opt.condition_D
@@ -218,7 +219,7 @@ class _competitionGan(_baseModel):
     def __str__(self):
         netG = self.netG.__str__()
         netD = self.netD.__str__()
-        return 'Gan:\n' + '{}_{}{}'.format('v3.1', netG, netD)
+        return 'Gan:\n' + '{}_{}{}'.format(self.type, netG, netD)
 
     def gan_type(self):
         '''print what the gan's type
