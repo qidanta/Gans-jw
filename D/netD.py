@@ -58,12 +58,12 @@ def create_convnets_D(cfg, x_dim = 0, c_dim = 0, batch_norm = False):
 def build_netD(cfg_index, x_dim = 0, hidden = False, c_dim = 0, batch_norm=False):
     '''build sigle netD
 
-    - Params
-    @cfg_index: the index-label of structure of netD
-    @x_dim: input-data dim
-    @c_dim: condition dim, but not for netD
+    @Params
+    - cfg_index: the index-label of structure of netD
+    - x_dim: input-data dim
+    - c_dim: condition dim, but not for netD
 
-    - Returns
+    @Returns
     the class netD
     '''
     network = create_convnets_D(netDNumConfig[cfg_index], x_dim, c_dim)

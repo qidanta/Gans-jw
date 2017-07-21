@@ -5,6 +5,7 @@ import random
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import torch
+import glog as log
 from torch.autograd import Variable
 
 import torchvision.utils as vutils
@@ -20,13 +21,24 @@ from util.vision_util import create_sigle_experiment
 
 #v3.3 add dcgan
 class _competitionGan(_baseModel):
+    '''feature match gans, compare G's each layer out and D's each layer out
+    ...this is loss that how to compute
+
+    @Params:
+    - opt: from `train_`.py  files
+    - x_dim: noise dim
+    - z_dim: img's channels(dim)
+    - condtition_D: for ssl
+    - mb_size: the batch size of training
+    - Lambda: the weight of some loss
+    - savepath: where to save the path
+    '''
     def __init__(self, opt):
         super(_competitionGan, self).__init__(opt)
         self.opt = opt
         self.x_dim = opt.x_dim
         self.z_dim = opt.z_dim
         self.condition_D = opt.condition_D
-        self.nums = opt.nums
         self.mb_size = opt.mb_size
         self.Lambda = opt.Lambda
         self.savepath = opt.savepath
@@ -75,6 +87,7 @@ class _competitionGan(_baseModel):
             init_network(self.netG)
     
     def draft_data(self, input, target):
+        '''process input-data'''
         self.mb_size = input.size(0)
         self.target = target
         self.X.data.resize_(input.size()).copy_(input)
@@ -82,6 +95,7 @@ class _competitionGan(_baseModel):
         self.label.data.resize_(self.mb_size)
 
     def backward_D(self):
+        '''net D backward'''
         self.fake, self.fake_fm = self.netG(self.Z)
         self.D_fake, _ = self.netD(self.fake)
 
@@ -104,6 +118,7 @@ class _competitionGan(_baseModel):
         self.cnt = self.cnt + 1
 
     def backward_G(self):  
+        '''net G backward'''
         D_fake, _ = self.netD(self.fake)
 
         self.label.data.fill_(1)
@@ -119,6 +134,7 @@ class _competitionGan(_baseModel):
         self.best_netG_index = 0
     
     def train(self, input, target):
+        '''train model gan, by backward G/D'''
         self.draft_data(input, target)
 
         self.netD.zero_grad()
@@ -157,25 +173,25 @@ class _competitionGan(_baseModel):
     def load_networkG(self, g_network_path):
         '''load network parameters of netG and netD
 
-        - Params:
-        @g_network_path: the path of netG
+        @Params:
+        - g_network_path: the path of netG
         '''
         for netG in self.netGs:
             netG.load_state_dict(torch.load(g_network_path))
     
     def save_network(self, it, savepath):
-        print 'training-result-netGPth: iters_{}netG.pth/index_{}/storing'.format(it, self.best_netG_index)
+        log.info("Saving netG - epochs: {}  index: {}".format(it, self.best_netG_index))
         torch.save(self.netG.state_dict(), '{}/netG_epoch_{}_index_{}.pth' .format(savepath, it, self.best_netG_index))
-        print 'training-result-netDPth: iters_{}netD.pth/storing'.format(it)
+        log.info("Saving netD - epochs: {}".format(it))
         torch.save(self.netD.state_dict(), '{}/netD_epoch_{}.pth' .format(savepath, it))
 
     def save_image(self, fake, it , savepath):
         '''save result of netG output
 
-        - Params:
-        @fake: the output of netG
-        @it: number of iterations
-        @savepath: in savepath, save network parameter
+        @Params:
+        - fake: the output of netG
+        - it: number of iterations
+        - savepath: in savepath, save network parameter
         '''
         if self.opt.cuda:
             samples = fake.data.cpu()
@@ -201,13 +217,12 @@ class _competitionGan(_baseModel):
             plt.savefig(self.savepath+ '/{}.png'.format(str(it)), bbox_inches='tight')
 
     def store(self, epoch):
-        print 'store: [{}/{}]'.format(epoch, self.opt.niter)
-        print '=========='
+        log.info("*" * 50)
+        log.info("Epoch: {}  Iters: {}".format(epoch, self.opt.niter))
         if not os.path.exists(self.savepath):
             os.makedirs(self.savepath)
         self.save_network(self.cnt, self.savepath)
         self.save_image(self.fake_like_sample, self.cnt, self.savepath)
-        print '=========='
 
     def visual(self):
         if self.cc:

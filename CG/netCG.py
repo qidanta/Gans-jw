@@ -96,13 +96,13 @@ def create_convnets_D(cfg, x_dim = 0, c_dim = 0, batch_norm = False):
 
 def build_netCG(cfg_index, z_dim = 100, x_dim = 784, nums = 2, c_dim = 0, batch_norm=False):
     '''build sigle netCG
-    - Params:
-    @cfg_index: what kind of netG
-    @z_dim: nosie dim
-    @x_dim: real img channels
-    @c_dim: conditions dim
+    @Params:
+    - cfg_index: what kind of netG
+    - z_dim: nosie dim
+    - x_dim: real img channels
+    - c_dim: conditions dim
 
-    - Returns:
+    @Returns:
     the class netG
     '''
     network_G=create_convnets_G(netNumGConfig[cfg_index], z_dim, c_dim)

@@ -58,13 +58,14 @@ def create_convnets_G(cfg, x_dim = 0, c_dim = 0, batch_norm = False):
 
 def build_netG(cfg_index, z_dim = 0, c_dim = 0, batch_norm=False):
     '''build sigle netG
-    - Params:
-    @netGS: index in cfg, shared layers
-    @netGI: index in cfg, independ layers
-    @z_dim: nosie dim
-    @c_dim: conditions dim
+    
+    @Params:
+    - netGS: index in cfg, shared layers
+    - netGI: index in cfg, independ layers
+    - z_dim: nosie dim
+    - c_dim: conditions dim
 
-    - Returns:
+    @Returns:
     the class netG
     '''
     network=create_convnets_G(netNumGConfig[cfg_index], z_dim, c_dim)
