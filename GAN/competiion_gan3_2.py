@@ -135,6 +135,7 @@ class _competitionGan(_baseModel):
     
     def train(self, input, target):
         '''train model gan, by backward G/D'''
+        log.info("GAN({}) is training...".format(self.gans_type))
         self.draft_data(input, target)
 
         self.netD.zero_grad()
@@ -180,10 +181,10 @@ class _competitionGan(_baseModel):
             netG.load_state_dict(torch.load(g_network_path))
     
     def save_network(self, it, savepath):
-        log.info("Saving netG - epochs: {}  index: {}".format(it, self.best_netG_index))
-        torch.save(self.netG.state_dict(), '{}/netG_epoch_{}_index_{}.pth' .format(savepath, it, self.best_netG_index))
-        log.info("Saving netD - epochs: {}".format(it))
-        torch.save(self.netD.state_dict(), '{}/netD_epoch_{}.pth' .format(savepath, it))
+        log.info("Saving netG - [epochs: {}  index: {}] in {}".format(it, self.best_netG_index, self.opt.savepath))
+        torch.save(self.netG.state_dict(), '{}/netG_epoch{}_index{}.pth' .format(savepath, it, self.best_netG_index))
+        log.info("Saving netD - [epochs: {}] in {}".format(it, self.opt.savepath))
+        torch.save(self.netD.state_dict(), '{}/netD_epoch{}.pth' .format(savepath, it))
 
     def save_image(self, fake, it , savepath):
         '''save result of netG output
@@ -212,17 +213,19 @@ class _competitionGan(_baseModel):
             plt.imshow(sample.reshape(self.opt.img_size, self.opt.img_size), cmap='Greys_r')
         
         if self.opt.train:
-            plt.savefig(self.savepath+ '/{}_{}.png'.format(str(it), self.best_netG_index), bbox_inches='tight')
+            log.info("Saving TRIMG - [epochs: {}  index: {}] in {}".format(it, self.best_netG_index, self.opt.savepath))
+            plt.savefig(self.savepath+ '/TRIMG_epoch{}_index{}.png'.format(str(it), self.best_netG_index), bbox_inches='tight')
         else:
-            plt.savefig(self.savepath+ '/{}.png'.format(str(it)), bbox_inches='tight')
+            log.info("Saving TESTIMG - [epochs: {}] in {}".format(it, self.opt.savepath))
+            plt.savefig(self.savepath+ '/TESTIMG_epoch{}.png'.format(str(it)), bbox_inches='tight')
 
     def store(self, epoch):
         log.info("*" * 50)
         log.info("Epoch: {}  Iters: {}".format(epoch, self.opt.niter))
         if not os.path.exists(self.savepath):
             os.makedirs(self.savepath)
-        self.save_network(self.cnt, self.savepath)
-        self.save_image(self.fake_like_sample, self.cnt, self.savepath)
+        self.save_network(epoch, self.savepath)
+        self.save_image(self.fake_like_sample, epoch, self.savepath)
 
     def visual(self):
         if self.cc:
