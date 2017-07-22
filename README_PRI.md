@@ -102,3 +102,7 @@ those are some rule we should follow after times:
 
 * use v1.1 to find best netG
 * only modifilde backward's D&G
+
+## v3
+
+* **keywords** - fm_loss

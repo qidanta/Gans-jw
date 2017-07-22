@@ -9,10 +9,10 @@ def create_netG_indeps_sample(netG_indep, input, condition=0):
 
     in v1.0, condition for netG, not support now.
 
-    - Params:
-    @netG_indep: a list of netG
-    @input: noise input from netG_share outputs
-    @condition: condition for netG create sample
+    @Params:
+    - netG_indep: a list of netG
+    - input: noise input from netG_share outputs
+    - condition: condition for netG create sample
 
     - Returns:
     a list of samples created by netG_indep
@@ -28,13 +28,13 @@ def create_netG_share_sample(netG_share, input, condition=0):
     in v1.0, condition for netG, not support now.
     in v1.2, mutil lower layers(netG indeps), sigle high layer(netG share)
 
-    - Params:
-    @netG_share: sigle high layer's netG
-    @input: a list of input from netG_indep outputs
-    @condition: condition for netG create sample
+    @Params:
+    - netG_share: sigle high layer's netG
+    - input: a list of input from netG_indep outputs
+    - condition: condition for netG create sample
 
-    - Returns:
-    a list of samples created by netG_indep
+    @Returns:
+    - list of samples created by netG_indep
     '''
     G_share_sample = []
     for sample in input:
@@ -46,10 +46,10 @@ def create_netG_share_sample(netG_share, input, condition=0):
 def netD_fake(indep_samples, netD):
     '''import fake samples, computing those fake prop
 
-    - Params:
-    @indep_samples: fake samples from netG
+    @Params:
+    - indep_samples: fake samples from netG
 
-    - Returns:
+    @Returns:
     prop of those fake samples
     '''
     fake_prop = []
@@ -60,11 +60,11 @@ def netD_fake(indep_samples, netD):
 def compute_fake_loss(fake_prop, label):
     '''compute loss of netG by offical funcs
 
-    - Params:
-    @fake_prop: the prop of fake picture(sample created by netG)
-    @label: BCEloss's label
+    @Params:
+    - fake_prop: the prop of fake picture(sample created by netG)
+    - label: BCEloss's label
 
-    - Returns:
+    @Returns:
     the loss of netG
      '''
     fake_losses = []
@@ -77,12 +77,12 @@ def compute_fake_loss(fake_prop, label):
 def competitin_cross_entry(index, target, dim=10):
     '''computer nn.CrossEntryLoss between index and target
     
-    - Params:
-    @index : int type, expand to (1, 10)
-    @taget: from dataloader
-    @dim: control index expand to (1, dim)
+    @Params:
+    - index : int type, expand to (1, 10)
+    - taget: from dataloader
+    - dim: control index expand to (1, dim)
 
-    - Returns
+    @Returns
     crossEnteyloss
     '''
     label = torch.zeros(1, dim)
@@ -95,10 +95,10 @@ def competitin_cross_entry(index, target, dim=10):
 def compute_fm_loss(real_feats, fake_feats, criterion='HingeEmbeddingLoss'):
     '''compute distance bwtween real_feats and fake_feats, instead of l1loss
 
-    - Params:
-    @real_feats: real img's features, **not the last output of netD, and is hidden-layers's output**
-    @fake_feats: same as upone, but just from fake imgs
-    @criterion: criterion type, defalyt is `HingeEmbeddingLoss`
+    @Params:
+    - real_feats: real img's features, **not the last output of netD, and is hidden-layers's output**
+    - fake_feats: same as upone, but just from fake imgs
+    - criterion: criterion type, defalyt is `HingeEmbeddingLoss`
     '''
     if criterion == 'HingeEmbeddingLoss':
         criterion = nn.HingeEmbeddingLoss()
@@ -113,11 +113,11 @@ def compute_fm_loss(real_feats, fake_feats, criterion='HingeEmbeddingLoss'):
 def find_best_netG(fake_prop):
     '''v1.0 find the best netG from netG_indep by its max netG_prop
 
-    - Params:
-    @fake_prop: the prop of fake imgs
+    @Params:
+    - fake_prop: the prop of fake imgs
 
-    - Returns:
-    the index of the best netG in neG_indep
+    @Returns:
+     - the index of the best netG in neG_indep
     '''
     fake_losses = np.array([(torch.mean(fake)).data.numpy()[0] for fake in fake_prop])
     return np.argmax(fake_losses)
@@ -125,12 +125,12 @@ def find_best_netG(fake_prop):
 def find_best_netG_v1dot1(entropy, fake, origin):
     '''the min of (fake - origin), the index will be
 
-    - Params:
-    @entropy: such as nn.L1loss
-    @fake: fake samples
-    @origin: the origin samples
+    @Params:
+    - entropy: such as nn.L1loss
+    - fake: fake samples
+    - origin: the origin samples
 
-    - Returns
+    @Returns
     the index of best fake sample
     '''
     tmp = []
@@ -142,9 +142,9 @@ def find_best_netG_v1dot1(entropy, fake, origin):
 def find_best_netG_v1dot2(real_prob, fake_prob):
     '''find the one in fake_prob approch real_prob
 
-    - Params:
-    @real_prob: netD(X), X = real img
-    @fake_prob: a list of netD(fake), fake = fake samples
+    @Params:
+    - real_prob: netD(X), X = real img
+    - fake_prob: a list of netD(fake), fake = fake samples
 
     - Returns:
     find the index in fake_prob approch real_prob
@@ -160,11 +160,11 @@ def find_best_netG_v1dot2(real_prob, fake_prob):
 def find_best_netG_v1dot3(class_prob, target):
     '''find the one in fake_prob approch real_prob
 
-    - Params:
-    @class_prob: a list of Variable type, each one is (mb, size, 10) for mnist, from netC
-    @target: Variable type, from dataloader. is the goal of netG
+    @Params:
+    - class_prob: a list of Variable type, each one is (mb, size, 10) for mnist, from netC
+    - target: Variable type, from dataloader. is the goal of netG
 
-    - Returns:
+    @Returns:
     find the index
     '''
     target_prob = []
@@ -180,12 +180,12 @@ def compute_dloss(real_prop, fake_prop, label):
     take the best-prop fake_prop as real-like prop, the real-like prop and real prop as real prop
     the rest of fake_prop as fake_prop
 
-    - Params:
-    @real_prop: the prop of dis real imgs
-    @fake_prop: the prop of dis fake imgs
-    @label: BCEloss's label
+    @Params:
+    - real_prop: the prop of dis real imgs
+    - fake_prop: the prop of dis fake imgs
+    - label: BCEloss's label
 
-    - Returns: 
+    @Returns: 
     the loss of 
     netD: log(D(x)) + log(1 - D(G(z)))
     '''
@@ -207,9 +207,9 @@ def compute_dloss(real_prop, fake_prop, label):
 def compute_gloss(fake_prop, label):
     '''compute loss of netG by compute_fake_loss funcs
 
-    - Params:
-    @fake_prop: the prop of fake picture(sample created by netG)
-    @label: BCEloss's label
+    @Params:
+    - fake_prop: the prop of fake picture(sample created by netG)
+    - label: BCEloss's label
 
     - Returns:
     the loss of 
@@ -228,11 +228,11 @@ def mutil_backward(netG_losses, net_share, net_indeps, index=None):
     '''mutil  backward() for netG_losses, let netG_losses[index].backward() as lastOne
        ... netG_share will backward only followed by netG_losses[index]
 
-    - Params:
-    @netG_losses: netG_losses
-    @net_share: in v1.2 mean high level layer netG
-    @net_indeps: in v1.2 mean low level layer netG
-    @index: netG_losses[index] out of backward()
+    @Params:
+    - netG_losses: netG_losses
+    - net_share: in v1.2 mean high level layer netG
+    - net_indeps: in v1.2 mean low level layer netG
+    - index: netG_losses[index] out of backward()
     '''
     for i in range(len(netG_losses)):
         if i == index:
@@ -249,11 +249,11 @@ def mutil_backward(netG_losses, net_share, net_indeps, index=None):
 def mutil_steps(netG_losses, net_share, net_indeps, index=None):
     '''v1.0 mutil step() for mutil net_solver
 
-    - Params: 
-    @netG_losses: loss for netG
-    @net_indeps: mutil independly netG, each netG is net_indep
-    @net_share: shared netG
-    @index: net_indeps[index] be the lastOne to step()
+    @Params: 
+    - netG_losses: loss for netG
+    - net_indeps: mutil independly netG, each netG is net_indep
+    - net_share: shared netG
+    - index: net_indeps[index] be the lastOne to step()
 
     - Returns:
     no returns
@@ -270,10 +270,10 @@ def mutil_steps(netG_losses, net_share, net_indeps, index=None):
 def link_data(data, times, dim):
     '''expand the data
 
-    - Params:
-    @data: the data flow in netG
-    @dim: the dim-index of data
-    @times: torch.cat([data, data]) times's times by the order of dim
+    @Params:
+    - data: the data flow in netG
+    - dim: the dim-index of data
+    - times: torch.cat([data, data]) times's times by the order of dim
 
     - Returns:
     dim = 1, time =3, the dim of data = (64, 1, 28, 28)
@@ -287,10 +287,10 @@ def link_data(data, times, dim):
 def link2condition_data(data, target, classes=10):
     '''add condition to data
 
-    - Params:
-    @data: input from dataloader for net, for mnist, (64, x_dim)
-    @target dataloader, for mnist, (64, 1)
-    @classes: if define, for mnist's condition, it will become (64, classes), not (64, 10)
+    @Params:
+    - data: input from dataloader for net, for mnist, (64, x_dim)
+    - target dataloader, for mnist, (64, 1)
+    - classes: if define, for mnist's condition, it will become (64, classes), not (64, 10)
 
     - Return:
      same data type as data, for mnist, data.size from (64, x_dim) become (64, x_dim + classes)
@@ -311,9 +311,9 @@ def link2condition_data(data, target, classes=10):
 def draft_data(fake_samples, cuda):
     '''if cuda is true, draft data from GPU. Otherwise, change nothing
 
-    - Params:
-    @fake_samples: netG(z)
-    @cuda: true or false
+    @Params:
+    - fake_samples: netG(z)
+    - cuda: true or false
 
     - Return
     a floattensor
@@ -326,10 +326,10 @@ def draft_data(fake_samples, cuda):
 def resize_data(samples, img_size, mb_size):
     '''resize samples to (img_size, img_size)
 
-    - Params:
-    @samples: img samples, a list of Variale(pytorch) type
-    @img_size: finall img size. len of sample(in samples) > img_size*img*size
-    @mb_size: how many imgs in sample(in samples)
+    @Params:
+    - samples: img samples, a list of Variale(pytorch) type
+    - img_size: finall img size. len of sample(in samples) > img_size*img*size
+    - mb_size: how many imgs in sample(in samples)
     '''
     for i in range(len(samples)):
         samples[i].data.resize_((mb_size, img_size, img_size))
@@ -340,11 +340,11 @@ def resize_data(samples, img_size, mb_size):
 def compute_mean(input, scale):
     '''compute mean of input
 
-    - Params:
-    @input: input data
-    @scale: sum/scale = mean
+    @Params:
+     - input: input data
+     - scale: sum/scale = mean
 
-    - Returns
+    @Returns
     the mean of input data
     '''
     mean = 0

@@ -3,11 +3,11 @@ import torch.optim as optim
 def create_optims(nets, config):
     '''create optim for each net in nets
 
-    - Params:
-    @nets: each one in nets is class netG
-    @config: config for optim
+    @Params:
+    - nets: each one in nets is class netG
+    - config: config for optim
 
-    - Return:
+    @Return:
     mutil optims
     '''
     num = len(nets)
@@ -19,11 +19,11 @@ def create_optims(nets, config):
 def create_couple2one_optims(net_share, net_indeps, config):
     '''v1.0 create mutil Adam optims by couple net_share and net_indep's parameters
 
-    - Params:
-    @net_share: single shared netG for sharing
-    @net_indep: mutil indepently netG_indep
+    @Params:
+    - net_share: single shared netG for sharing
+    - net_indep: mutil indepently netG_indep
 
-    - Returns:
+    @Returns:
     a list of solver by adding netG_share's parameters and net_indep's parameters
     '''
     optims = []
@@ -35,11 +35,11 @@ def create_couple2one_optims(net_share, net_indeps, config):
 def create_couple_optims(net_share, net_indep):
     '''create mutil optims by couple net_share and net_indep
 
-    - Params:
-    @net_share: single netG_solver for sharing
-    @net_indep: mutil indepently netG_solvers
+    @Params:
+     - net_share: single netG_solver for sharing
+     - net_indep: mutil indepently netG_solvers
 
-    - Returns:
+    @Returns:
     a list of (net_share_optim, net_indep_optim)
     '''
     optims = []

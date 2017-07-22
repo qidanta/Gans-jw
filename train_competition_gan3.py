@@ -11,7 +11,7 @@ from util.train_util import link2condition_data
 parser = argparse.ArgumentParser()
 parser.add_argument('--x_dim', default=1, help='channels of input data')
 parser.add_argument('--z_dim', default=100, help='noise channels')
-parser.add_argument('--mb_size', default=64, help='the size of each batch')
+parser.add_argument('--mb_size', default=1, help='the size of each batch')
 parser.add_argument('--img_size', default=64, help='for mnsit datasets, it is 28px')
 parser.add_argument('--savepath', default='out/', help='the folder saved .pth and img results')
 parser.add_argument('--display_it', default=500, help='iter how many times, display the result')

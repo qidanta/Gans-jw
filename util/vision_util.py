@@ -2,11 +2,11 @@
 def create_sigle_experiment(client, name):
     '''create experiment named name
 
-    - Params:
-    @client: CrayonClient
-    @name: experiment name
+    @Params:
+    - client: CrayonClient
+    - name: experiment name
 
-    - Returns:
+    @Returns:
     a experiment named name
     '''
     try:
@@ -18,12 +18,12 @@ def create_sigle_experiment(client, name):
 def create_experiments(client, num, prefix='G_loss'):
     '''create num experiments
 
-    - Params:
-    @client: Crayonclinet
-    @num: how many experiments created
-    @prefix: the name of experiment's prefix
+    @Params:
+    - client: Crayonclinet
+    - num: how many experiments created
+    - prefix: the name of experiment's prefix
 
-    - Returns:
+    @Returns:
     contain mutil G_loss experiment
     '''
     exps = []
@@ -35,11 +35,11 @@ def create_experiments(client, num, prefix='G_loss'):
 def add2experiments(losses, exps, step, prefix='G_loss'):
     '''add G_loss's data to exps
 
-    - Params:
-    @lossess: G_losses
-    @exps: experiment created by crayonclient
-    @step: run times
-    @prefix: the prefix of experiment's name
+    @Params:
+    - lossess: G_losses
+    - exps: experiment created by crayonclient
+    - step: run times
+    - prefix: the prefix of experiment's name
     '''
     couples = zip(losses, exps)
     for i, couple in enumerate(couples):

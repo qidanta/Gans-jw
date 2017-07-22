@@ -204,6 +204,10 @@ always use the max prob of mean(netG) as my rule to choose the index of netG.Use
 
 * in all competition_gan.py files - **fixed** bugs, take self.D_fake to competue loss in backward_G
 
+### 2017-7-21
+
+* in all files - **changed** doc string
+
 
 ## Test-CompetitionGAN
 

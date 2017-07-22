@@ -96,13 +96,13 @@ def create_convnets_DFM(cfg, x_dim = 0, c_dim = 0, batch_norm = False):
 
 def build_netDFM(cfg_index, z_dim = 0, c_dim = 0, batch_norm=False, gans_type='dcgans'):
     '''build sigle netD
-    - Params:
-    @cfg_index: index in cfg
-    @z_dim: nosie dim
-    @c_dim: conditions dim
-    @gans_type: what's the type of netG
+    @Params:
+    - cfg_index: index in cfg
+    - z_dim: nosie dim
+    - c_dim: conditions dim
+    - gans_type: what's the type of netG
 
-    - Returns:
+    @Returns:
     the class netD
     '''
     networks = []
