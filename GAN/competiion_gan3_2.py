@@ -41,7 +41,7 @@ class _competitionGan(_baseModel):
         self.condition_D = opt.condition_D
         self.mb_size = opt.mb_size
         self.Lambda = opt.Lambda
-        self.savepath = opt.savepath
+        self.savepath = '{}{}/'.format(opt.savepath, opt.gans_type)
         self.cnt = 0
 
         self.netG = build_netGFM(opt.g_model, opt.z_dim, gans_type=opt.gans_type)
@@ -126,7 +126,7 @@ class _competitionGan(_baseModel):
         self.fake_like_sample = self.fake
         #self.loss_G_real.backward(retain_variables=True)
 
-        self.fm_loss = compute_fm_loss(self.real_fm.reverse(), self.fake_fm)
+        self.fm_loss = compute_fm_loss(self.real_fm, self.fake_fm, cuda=self.opt.cuda)
         #self.fm_loss.backward(retain_variables=True)
         self.loss_G = self.loss_G_real * 0.1 + self.fm_loss * 0.9
 
@@ -135,7 +135,6 @@ class _competitionGan(_baseModel):
     
     def train(self, input, target):
         '''train model gan, by backward G/D'''
-        log.info("GAN({}) is training...".format(self.gans_type))
         self.draft_data(input, target)
 
         self.netD.zero_grad()
@@ -181,9 +180,9 @@ class _competitionGan(_baseModel):
             netG.load_state_dict(torch.load(g_network_path))
     
     def save_network(self, it, savepath):
-        log.info("Saving netG - [epochs: {}  index: {}] in {}".format(it, self.best_netG_index, self.opt.savepath))
+        log.info("Saving netG - [epochs: {}  cnt: {}  index: {}] in {}".format(it, self.cnt, self.best_netG_index, self.savepath))
         torch.save(self.netG.state_dict(), '{}/netG_epoch{}_index{}.pth' .format(savepath, it, self.best_netG_index))
-        log.info("Saving netD - [epochs: {}] in {}".format(it, self.opt.savepath))
+        log.info("Saving netD - [epochs: {}  cnt: {}] in {}".format(it, self.cnt, self.savepath))
         torch.save(self.netD.state_dict(), '{}/netD_epoch{}.pth' .format(savepath, it))
 
     def save_image(self, fake, it , savepath):
@@ -213,12 +212,12 @@ class _competitionGan(_baseModel):
             plt.imshow(sample.reshape(self.opt.img_size, self.opt.img_size), cmap='Greys_r')
         
         if self.opt.train:
-            log.info("Saving TRIMG - [epochs: {}  index: {}] in {}".format(it, self.best_netG_index, self.opt.savepath))
+            log.info("Saving TRIMG - [epochs: {}  cnt: {}  index: {}] in {}".format(it, self.cnt, self.best_netG_index, self.savepath))
             plt.savefig(self.savepath+ '/TRIMG_epoch{}_index{}.png'.format(str(it), self.best_netG_index), bbox_inches='tight')
         else:
-            log.info("Saving TESTIMG - [epochs: {}] in {}".format(it, self.opt.savepath))
+            log.info("Saving TESTIMG - [epochs: {}  cnt: {}] in {}".format(it, self.cnt, self.savepath))
             plt.savefig(self.savepath+ '/TESTIMG_epoch{}.png'.format(str(it)), bbox_inches='tight')
-
+        plt.close()
     def store(self, epoch):
         log.info("*" * 50)
         log.info("Epoch: {}  Iters: {}".format(epoch, self.opt.niter))
@@ -236,7 +235,7 @@ class _competitionGan(_baseModel):
     def __str__(self):
         netG = self.netG.__str__()
         netD = self.netD.__str__()
-        return 'Gan:\n' + '{}_{}{}'.format('v3.1', netG, netD)
+        return 'Gan:\n' + '{}_{}{}'.format(self.opt.gans_type, netG, netD)
 
     def gan_type(self):
         '''print what the gan's type
