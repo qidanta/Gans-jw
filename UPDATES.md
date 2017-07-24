@@ -208,6 +208,11 @@ always use the max prob of mean(netG) as my rule to choose the index of netG.Use
 
 * in all files - **changed** doc string
 
+### 2017-7-23
+
+* in ./GAN/competition_gan3_2.py - **changed** self.savepath into self.savepath + self.gans_type 
+
+
 
 ## Test-CompetitionGAN
 

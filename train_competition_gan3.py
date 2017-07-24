@@ -2,7 +2,7 @@ import argparse
 
 import torch
 
-from GAN.competition_gan3_2_1 import _competitionGan
+from GAN.competiion_gan3_2 import _competitionGan
 from torchvision import datasets, transforms
 
 # for test
@@ -15,14 +15,14 @@ parser.add_argument('--mb_size', default=1, help='the size of each batch')
 parser.add_argument('--img_size', default=64, help='for mnsit datasets, it is 28px')
 parser.add_argument('--savepath', default='out/', help='the folder saved .pth and img results')
 parser.add_argument('--display_it', default=500, help='iter how many times, display the result')
-parser.add_argument('--g_model', default=['dcgans_nob_sub1', 'dcgans_nob_sub2', 'dcgans_nob_sub3', 'dcgans_nob_sub4', 'dcgans_remain'], help='what kind of netG')
-parser.add_argument('--d_model', default=['dcgans_nob_sub1', 'dcgans_nob_sub2', 'dcgans_nob_sub3', 'dcgans_nob_sub4', 'dcgans_logint'], help='what kind of netD')
-parser.add_argument('--gans_type', default='dcgans_nob', help='what\'s the dcgans type')
+parser.add_argument('--g_model', default=['dcgans_sub1', 'dcgans_sub2', 'dcgans_sub3', 'dcgans_sub4', 'dcgans_remain'], help='what kind of netG')
+parser.add_argument('--d_model', default=['dcgans_sub1', 'dcgans_sub2', 'dcgans_sub3', 'dcgans_sub4', 'dcgans_remain'], help='what kind of netD')
+parser.add_argument('--gans_type', default='dcgans', help='what\'s the dcgans type')
 parser.add_argument('--c_model', default='mnist_classfier', help='what kind of classfier netD')
 parser.add_argument('--niter', default=5, help='iter how many times')
 parser.add_argument('--train', default=True, help='trian or test')
 parser.add_argument('--cc', default=True, help='use tensorboard or not')
-parser.add_argument('--cuda', default=False, help='use cuda or not')
+parser.add_argument('--cuda', default=True, help='use cuda or not')
 parser.add_argument('--nums',  default=10, help='how many netG to compete!')
 parser.add_argument('--Lambda',  default=10, help='belong to competition')
 parser.add_argument('--random', default=False, help='random the best netG index')

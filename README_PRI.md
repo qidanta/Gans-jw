@@ -1,6 +1,12 @@
 # Small Project for me
 > just gan!!!!
 
+## HOW TO USE IT?
+
+* in `pytorch` and `python2`
+* datasets is `mnist` and `cifar10`
+* download [crayon](https://github.com/torrvision/crayon) for visual, command `sudo docker run -d -p 8888:8888 -p 8889:8889 alband/crayon`
+
 ## master
 
 * no condition version.
@@ -106,3 +112,7 @@ those are some rule we should follow after times:
 ## v3
 
 * **keywords** - fm_loss
+
+### TODO
+
+* [ ] - add continue train version in `conpetition_gan3_2.py`

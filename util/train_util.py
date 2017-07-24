@@ -92,8 +92,10 @@ def competitin_cross_entry(index, target, dim=10):
     print -entropy(label, target)
     return -entropy(label, target)
 
-def compute_fm_loss(real_feats, fake_feats, criterion='HingeEmbeddingLoss'):
+def compute_fm_loss(real_feats, fake_feats, criterion='HingeEmbeddingLoss', cuda=False):
     '''compute distance bwtween real_feats and fake_feats, instead of l1loss
+    ...fork from [discogan](https://github.com/SKTBrain/DiscoGAN/blob/master/discogan/image_translation.py)'s 
+    ...get_fm_loss
 
     @Params:
     - real_feats: real img's features, **not the last output of netD, and is hidden-layers's output**
@@ -105,7 +107,10 @@ def compute_fm_loss(real_feats, fake_feats, criterion='HingeEmbeddingLoss'):
     losses = 0
     for real_feat, fake_feat in zip(real_feats, fake_feats):
         l2 = (real_feat.mean() - fake_feat.mean()) * (real_feat.mean() - fake_feat.mean())
-        loss = criterion(l2, Variable(torch.ones(l2.size())))
+        if cuda:
+            loss = criterion(l2, Variable(torch.ones(l2.size())).cuda())
+        else:
+            loss = criterion(l2, Variable(torch.ones(l2.size())))
         losses += loss
     return losses
 
