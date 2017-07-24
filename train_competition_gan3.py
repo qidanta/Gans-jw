@@ -21,6 +21,7 @@ parser.add_argument('--gans_type', default='dcgans', help='what\'s the dcgans ty
 parser.add_argument('--c_model', default='mnist_classfier', help='what kind of classfier netD')
 parser.add_argument('--niter', default=5, help='iter how many times')
 parser.add_argument('--train', default=True, help='trian or test')
+parser.add_argument('--continue_train', default=False, help='load network weight/bias, and continue train or not')
 parser.add_argument('--cc', default=True, help='use tensorboard or not')
 parser.add_argument('--cuda', default=True, help='use cuda or not')
 parser.add_argument('--nums',  default=10, help='how many netG to compete!')

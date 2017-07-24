@@ -41,6 +41,9 @@ class _competitionGan(_baseModel):
         self.condition_D = opt.condition_D
         self.mb_size = opt.mb_size
         self.Lambda = opt.Lambda
+        self.continue_train = opt.continue_train
+        self.train = opt.train
+        self.test = True if self.continue_train and self.train else False
         self.savepath = '{}{}/'.format(opt.savepath, opt.gans_type)
         self.cnt = 0
 
@@ -72,6 +75,8 @@ class _competitionGan(_baseModel):
         self.real_like_sample = Variable(real_like_sample)
         self.fake_like_sample = Variable(fake_like_sample)
         self.label= Variable(label)
+
+        info.log("Train: {}  Continue: {}  Test: {}".format(self.train, self.continue_train, self.test))
 
         if self.opt.cc:
             self.create_tensorboard()
@@ -145,26 +150,10 @@ class _competitionGan(_baseModel):
         self.backward_G()
         self.G_solver.step()
         self.visual()
-
-    def continue_train(self, input):
-        '''use competition mode in continue_train func for try, 
-        ...not in train func
-        '''
-        self.draft_data(input)
-
-        self.netD.zero_grad()
-        self.backward_D()
-        self.D_solver.step()
-
-        for netG in self.netGs:
-            netG.zero_grad()
-        self.backward_G()
-        for solver in self.G_solvers:
-            solver.step()
     
     def test(self, cnt):
         self.Z.data.resize_(self.opt.mb_size, self.z_dim).normal_(0, 1) 
-        fake = self.netGs[0].forward(self.Z)
+        fake = self.netG.forward(self.Z)
         if not os.path.exists(self.savepath):
             os.makedirs(self.savepath)
         self.save_image(fake, cnt, self.savepath)
@@ -211,7 +200,7 @@ class _competitionGan(_baseModel):
             ax.set_aspect('equal')
             plt.imshow(sample.reshape(self.opt.img_size, self.opt.img_size), cmap='Greys_r')
         
-        if self.opt.train:
+        if self.train:
             log.info("Saving TRIMG - [epochs: {}  cnt: {}  index: {}] in {}".format(it, self.cnt, self.best_netG_index, self.savepath))
             plt.savefig(self.savepath+ '/TRIMG_epoch{}_index{}.png'.format(str(it), self.best_netG_index), bbox_inches='tight')
         else:
