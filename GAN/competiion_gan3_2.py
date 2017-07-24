@@ -207,6 +207,7 @@ class _competitionGan(_baseModel):
             log.info("Saving TESTIMG - [epochs: {}  cnt: {}] in {}".format(it, self.cnt, self.savepath))
             plt.savefig(self.savepath+ '/TESTIMG_epoch{}.png'.format(str(it)), bbox_inches='tight')
         plt.close()
+    
     def store(self, epoch):
         log.info("*" * 50)
         log.info("Epoch: {}  Iters: {}".format(epoch, self.opt.niter))

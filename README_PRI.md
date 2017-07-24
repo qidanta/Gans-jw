@@ -115,4 +115,4 @@ those are some rule we should follow after times:
 
 ### TODO
 
-* [ ] - add continue train version in `conpetition_gan3_2.py`
+* [x] - add continue train version in `conpetition_gan3_2.py`
