@@ -116,3 +116,6 @@ those are some rule we should follow after times:
 ### TODO
 
 * [x] - add continue train version in `conpetition_gan3_2.py`
+    * [ ] - if continue train, train epoch  = niter - already train epoch
+    * [ ] - if continue train, auto find last epoch pth of netG or netD
+* [ ] - store last network weight
