@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import torch
 
@@ -23,7 +24,7 @@ parser.add_argument('--niter', default=5, help='iter how many times')
 parser.add_argument('--train', default=False, help='trian or test')
 parser.add_argument('--continue_train', default=True, help='load network weight/bias, and continue train or not')
 parser.add_argument('--cc', default=True, help='use tensorboard or not')
-parser.add_argument('--cuda', default=True, help='use cuda or not')
+parser.add_argument('--cuda', default=False, help='use cuda or not')
 parser.add_argument('--nums',  default=10, help='how many netG to compete!')
 parser.add_argument('--Lambda',  default=10, help='belong to competition')
 parser.add_argument('--random', default=False, help='random the best netG index')
@@ -46,8 +47,13 @@ GAN = _competitionGan(opt)
 print GAN
 print GAN.info()
 
+if opt.continue_train:
+    filename = os.path.basename(opt.g_network_path)
+    start = opt.g_network_path.split('_')[1][-1]
+else:
+    start = 0
 
-for it in range(opt.niter):
+for it in range(start, opt.niter):
     for index, (data, target) in enumerate(train_loader):
         GAN.train(data, target)
         if GAN.cnt % opt.display_it == 0:
