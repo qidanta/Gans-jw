@@ -67,7 +67,8 @@ class _baseModel(object):
         @Params:
         - g_network_path: the path of netG
         '''
-        self.netG.load_state_dict(torch.load(d_network_path))
+        self.netG.load_state_dict(torch.load(g_network_path))
+
     def load_networkD(self, d_network_path):
         '''load network parameters of netG and netD
 
