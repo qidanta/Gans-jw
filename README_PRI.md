@@ -116,3 +116,19 @@ those are some rule we should follow after times:
 ### TODO
 
 * [x] - add continue train version in `conpetition_gan3_2.py`
+* [ ] - no `batchnorm layer` in v3.1
+
+### v3.1
+
+Just compare with **v3**.
+
+* **keywords** - fm_loss, no batchnorm layer
+
+## v4
+
+Still want competition gan within netGs.
+
+### TODO
+
+* [ ] - complete `baseMuitlModel.py`
+
