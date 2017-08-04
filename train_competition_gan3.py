@@ -24,14 +24,14 @@ parser.add_argument('--niter', default=5, help='iter how many times')
 parser.add_argument('--train', default=False, help='trian or test')
 parser.add_argument('--continue_train', default=True, help='load network weight/bias, and continue train or not')
 parser.add_argument('--cc', default=True, help='use tensorboard or not')
-parser.add_argument('--cuda', default=False, help='use cuda or not')
+parser.add_argument('--cuda', default=True, help='use cuda or not')
 parser.add_argument('--nums',  default=10, help='how many netG to compete!')
 parser.add_argument('--Lambda',  default=10, help='belong to competition')
 parser.add_argument('--random', default=False, help='random the best netG index')
 parser.add_argument('--find_version', default='v1.1', help='v1.0: index by maxium fake_prob | v1.1: minium L1 distance between real and fake img |v1.2: index by minium distance between real and fake prob')
 parser.add_argument('--condition_D', default=0)
-parser.add_argument('--g_network_path', default='/home/eric/Desktop/Project-PY27/Gans-jw/out/dcgans/netG_epoch1_index0.pth')
-parser.add_argument('--d_network_path', default='/home/eric/Desktop/Project-PY27/Gans-jw/out/dcgans/netD_epoch1.pth')
+parser.add_argument('--g_network_path', default='/home/eric/Desktop/Project-PY27/Gans-jw/out/dcgans/netG_epoch2_index0.pth')
+parser.add_argument('--d_network_path', default='/home/eric/Desktop/Project-PY27/Gans-jw/out/dcgans/netD_epoch2.pth')
 
 opt = parser.parse_args()
 
@@ -49,9 +49,10 @@ print GAN.info()
 
 if opt.continue_train:
     filename = os.path.basename(opt.g_network_path)
-    start = opt.g_network_path.split('_')[1][-1]
+    start = int(opt.g_network_path.split('_')[1][-1])
 else:
     start = 0
+
 
 for it in range(start, opt.niter):
     for index, (data, target) in enumerate(train_loader):

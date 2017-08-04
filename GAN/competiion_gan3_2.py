@@ -42,8 +42,8 @@ class _competitionGan(_baseModel):
         self.mb_size = opt.mb_size
         self.Lambda = opt.Lambda
         self.continue_train = opt.continue_train
-        self.train = opt.train
-        self.test = True if self.continue_train and self.train else False
+        self.is_train = opt.train
+        self.test = True if self.continue_train and self.is_train else False
         self.savepath = '{}{}/'.format(opt.savepath, opt.gans_type)
         self.cnt = 0
 
@@ -76,7 +76,7 @@ class _competitionGan(_baseModel):
         self.fake_like_sample = Variable(fake_like_sample)
         self.label= Variable(label)
 
-        info.log("Train: {}  Continue: {}  Test: {}".format(self.train, self.continue_train, self.test))
+        log.info("Train: {}  Continue: {}  Test: {}".format(self.is_train, self.continue_train, self.test))
 
         if self.opt.cc:
             self.create_tensorboard()
@@ -157,16 +157,6 @@ class _competitionGan(_baseModel):
         if not os.path.exists(self.savepath):
             os.makedirs(self.savepath)
         self.save_image(fake, cnt, self.savepath)
-
-
-    def load_networkG(self, g_network_path):
-        '''load network parameters of netG and netD
-
-        @Params:
-        - g_network_path: the path of netG
-        '''
-        for netG in self.netGs:
-            netG.load_state_dict(torch.load(g_network_path))
     
     def save_network(self, it, savepath):
         log.info("Saving netG - [epochs: {}  cnt: {}  index: {}] in {}".format(it, self.cnt, self.best_netG_index, self.savepath))
