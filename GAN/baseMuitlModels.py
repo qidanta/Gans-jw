@@ -7,18 +7,20 @@ import torchvision.utils as vutils
 from util.vision_util import create_sigle_experiment
 
 
-class _baseModel(object):
+class _baseMuitlModel(object):
     '''Base Model combine netG and netD to became a gans's model
 
     @Params:
     - opt: options for config gans'model
     - train: train or test
+    - nums: how many netGs
     - cc: crayon client or not
     - cuda: use cuda or not
     '''
 
     def __init__(self, opt):
         self.opt = opt
+        self.nums = nums
         self.istrain = opt.train
         self.cc = CrayonClient(hostname="localhost") if opt.cc else opt.cc
         self.cuda = opt.cuda
@@ -29,7 +31,11 @@ class _baseModel(object):
         if self.cc:
             self.cc.remove_all_experiments()
             self.D_exp = create_sigle_experiment(self.cc, 'D_loss')
-            self.G_exp = create_sigle_experiment(self.cc, 'G_loss')
+            self.G_exps = []
+            for i in range(self.nums):
+                G_loss_experiment_name = 'G_loss_{}'.format(i)
+                G_exp = create_sigle_experiment(self.cc, 'G_loss')
+                self.G_exps.append(G_exp)
     
     def draft_data(self, input):
         '''input from datasetsloader, put those into X/Z
@@ -68,7 +74,7 @@ class _baseModel(object):
         - g_network_path: the path of netG
         '''
         self.netG.load_state_dict(torch.load(g_network_path))
-
+        
     def load_networkD(self, d_network_path):
         '''load network parameters of netG and netD
 

@@ -1,4 +1,3 @@
-import argparse
 import os
 import random
 
@@ -18,12 +17,11 @@ from util.train_util import (find_best_netG, find_best_netG_v1dot1,
 from util.vision_util import create_sigle_experiment
 
 
-#v3.2.1 dcgan/fm_loss/no_batch
+#v3 base model
 class _competitionGan(_baseModel):
     def __init__(self, opt):
         super(_competitionGan, self).__init__(opt)
         self.opt = opt
-        self.type = 'v3.2.1'
         self.x_dim = opt.x_dim
         self.z_dim = opt.z_dim
         self.condition_D = opt.condition_D
@@ -34,30 +32,33 @@ class _competitionGan(_baseModel):
         self.cnt = 0
 
         self.netG = build_netGFM(opt.g_model, opt.z_dim, gans_type=opt.gans_type)
-        self.netD = build_netDFM(opt.d_model, opt.x_dim, opt.condition_D, gans_type=opt.gans_type)
+        self.netD = build_netDFM(opt.d_model, opt.x_dim, gans_type=opt.gans_type)
 
 
         X = torch.FloatTensor(opt.mb_size, opt.x_dim, opt.img_size, opt.img_size)
         Z = torch.FloatTensor(opt.mb_size, opt.z_dim, 1, 1)
 
-        real_like_sample = torch.FloatTensor(opt.mb_size, opt.x_dim, opt.img_size, opt.img_size)
-        fake_like_sample = torch.FloatTensor(opt.mb_size, opt.x_dim, opt.img_size, opt.img_size)
+        condition_data = torch.FloatTensor(opt.mb_size, opt.img_size * opt.img_size + opt.condition_D)
+        real_like_sample = torch.FloatTensor(opt.mb_size, opt.img_size*opt.img_size)
+        fake_like_sample = torch.FloatTensor(opt.mb_size, opt.img_size*opt.img_size)
         
         label = torch.FloatTensor(opt.mb_size)
         self.criterionGAN = torch.nn.BCELoss()
         self.criterionL1 = torch.nn.L1Loss()
 
         if self.cuda:
-            self.netD.cuda()
-            self.netG.cuda()
+            netD.cuda()
+            netG.cuda()
             self.criterionGAN.cuda()
-            self.criterionL1.cuda()
+            self.L1loss.cuda()
             X, Z = X.cuda(), Z.cuda()
+            condition_data = condition_data.cuda()
             real_like_sample, fake_like_sample = real_like_sample.cuda(), fake_like_sample.cuda()
             label = label.cuda()
 
         self.X = Variable(X)
         self.Z = Variable(Z)
+        self.condition_data = Variable(condition_data)
         self.real_like_sample = Variable(real_like_sample)
         self.fake_like_sample = Variable(fake_like_sample)
         self.label= Variable(label)
@@ -65,8 +66,8 @@ class _competitionGan(_baseModel):
         if self.opt.cc:
             self.create_tensorboard()
             self.index_exp = create_sigle_experiment(self.cc, 'index')
-        self.D_solver = torch.optim.Adam(self.netD.parameters(), lr=2e-4, betas=(0.5, 0.999))
-        self.G_solver = torch.optim.Adam(self.netG.parameters(), lr=2e-4, betas=(0.5, 0.999))
+        self.D_solver = torch.optim.Adam(self.netD.parameters(), lr=1e-3, betas=(0.5, 0.999))
+        self.G_solver = torch.optim.Adam(self.netG.parameters(), lr=1e-3, betas=(0.5, 0.999))
 
         if opt.train == False:
             self.load_networkG(self.opt.g_network_path)
@@ -79,15 +80,17 @@ class _competitionGan(_baseModel):
         self.mb_size = input.size(0)
         self.target = target
         self.X.data.resize_(input.size()).copy_(input)
-        self.Z.data.resize_(self.mb_size, self.z_dim, 1, 1).normal_(0, 1)
+        self.real_like_sample.data.resize_(self.mb_size, self.opt.img_size*self.opt.img_size)
+        self.fake_like_sample.data.resize_(self.mb_size, self.opt.img_size*self.opt.img_size)
+        self.X.data.resize_(self.mb_size, self.x_dim)
+        self.Z.data.resize_(self.mb_size, self.z_dim).normal_(0, 1)
         self.label.data.resize_(self.mb_size)
 
     def backward_D(self):
         self.fake, self.fake_fm = self.netG(self.Z)
-        self.D_fake, self.D_fake_logint, _ = self.netD(self.fake)
+        self.D_fake, _ = self.netD(self.fake)
 
-        self.D_real, self.D_real_logint, self.real_fm  = self.netD(self.X)
-        self.real_fm.reverse()
+        self.D_real, self.real_fm  = self.netD(self.X)
 
         # real-backward
         self.label.data.fill_(1)
@@ -105,16 +108,11 @@ class _competitionGan(_baseModel):
         self.cnt = self.cnt + 1
 
     def backward_G(self):  
-        D_fake, D_fake_logints,  _ = self.netD(self.fake)
+        D_fake, _ = self.netD(self.fake)
 
         self.label.data.fill_(1)
-        self.loss_G_real = self.criterionGAN(D_fake, self.label)
-        self.fake_like_sample = self.fake
-        #self.loss_G_real.backward(retain_variables=True)
-
-        #self.fm_loss = compute_fm_loss(self.real_fm, self.fake_fm)
-        #self.fm_loss.backward(retain_variables=True)
-        self.loss_G = self.loss_G_real# * 0.1 + self.fm_loss * 0.9
+        self.loss_G = self.criterionGAN(D_fake, self.label)
+        self.fake_like_sample.data.copy_(self.fake.data)
 
         self.loss_G.backward(retain_variables=True)
         self.best_netG_index = 0
@@ -178,11 +176,7 @@ class _competitionGan(_baseModel):
         @it: number of iterations
         @savepath: in savepath, save network parameter
         '''
-        if self.opt.cuda:
-            samples = fake.data.cpu()
-            samples = samples.resize_(self.mb_size, self.opt.x_dim, self.opt.img_size, self.opt.img_size).numpy()[:16]
-        else:
-            samples = fake.data.resize_(self.mb_size, self.opt.x_dim, self.opt.img_size, self.opt.img_size).numpy()[:16]
+        samples = fake.data.resize_(self.mb_size, 1, self.opt.img_size, self.opt.img_size).numpy()[:16]
 
         fig = plt.figure(figsize=(4, 4))
         gs = gridspec.GridSpec(4, 4)
@@ -194,7 +188,7 @@ class _competitionGan(_baseModel):
             ax.set_xticklabels([])
             ax.set_yticklabels([])
             ax.set_aspect('equal')
-            plt.imshow(sample.reshape(self.opt.img_size, self.opt.img_size), cmap='Greys_r')
+            plt.imshow(sample.reshape(28, 28), cmap='Greys_r')
         
         if self.opt.train:
             plt.savefig(self.savepath+ '/{}_{}.png'.format(str(it), self.best_netG_index), bbox_inches='tight')
@@ -219,7 +213,7 @@ class _competitionGan(_baseModel):
     def __str__(self):
         netG = self.netG.__str__()
         netD = self.netD.__str__()
-        return 'Gan:\n' + '{}_{}{}'.format(self.type, netG, netD)
+        return 'Gan:\n' + '{}_{}{}'.format('v3', netG, netD)
 
     def gan_type(self):
         '''print what the gan's type
@@ -231,7 +225,6 @@ class _competitionGan(_baseModel):
         '''
         return {'CG': self.opt.g_model, 'D': self.opt.d_model, 'X': self.X.data.size(), 'Z': self.Z.data.size(), 'label': self.label.data.size()}
 
-    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
