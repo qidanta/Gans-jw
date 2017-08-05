@@ -9,9 +9,9 @@ import glog as log
 from torch.autograd import Variable
 
 import torchvision.utils as vutils
-from baseModel import _baseModel
-from D.netD_fm import build_netDFM
-from G.netG_fm import build_netGFM
+from baseMuitlModels import _baseMuitlModel
+from D.netD import build_netD
+from G.netG import build_netG
 from util.network_util import create_nets, init_network
 from util.solver_util import create_optims
 from util.train_util import (find_best_netG, find_best_netG_v1dot1,
@@ -20,7 +20,7 @@ from util.vision_util import create_sigle_experiment
 
 
 #v3 keywords: fm_loss
-class _competitionGan(_baseModel):
+class _competitionGan(_baseMuitlModel):
     '''feature match gans, compare G's each layer out and D's each layer out
     ...this is loss that how to compute
 
@@ -46,9 +46,12 @@ class _competitionGan(_baseModel):
         self.test = True if self.continue_train and self.train else False
         self.savepath = '{}{}/'.format(opt.savepath, opt.gans_type)
         self.cnt = 0
-
-        self.netG = build_netGFM(opt.g_model, opt.z_dim, gans_type=opt.gans_type)
-        self.netD = build_netDFM(opt.d_model, opt.x_dim, opt.condition_D, gans_type=opt.gans_type)
+        
+        self.netGs = []
+        for index in range(self.nums):
+            netG = build_netG(opt.g_model, opt.z_dim)
+            self.netGs.append(netG)
+        self.netD = build_netD(opt.d_model, opt.x_dim, opt.condition_D)
 
 
         X = torch.FloatTensor(opt.mb_size, opt.x_dim, opt.img_size, opt.img_size)
@@ -63,7 +66,8 @@ class _competitionGan(_baseModel):
 
         if self.cuda:
             self.netD.cuda()
-            self.netG.cuda()
+            for index in range(self.nums):
+                self.netGs[index].cuda()
             self.criterionGAN.cuda()
             self.criterionL1.cuda()
             X, Z = X.cuda(), Z.cuda()
@@ -82,14 +86,14 @@ class _competitionGan(_baseModel):
             self.create_tensorboard()
             self.index_exp = create_sigle_experiment(self.cc, 'index')
         self.D_solver = torch.optim.Adam(self.netD.parameters(), lr=2e-4, betas=(0.5, 0.999))
-        self.G_solver = torch.optim.Adam(self.netG.parameters(), lr=2e-4, betas=(0.5, 0.999))
+        self.G_solvers = create_optims(self.netGs, [2e-4, (0.5, 0.999)])
 
         if opt.train == False:
             self.load_networkG(self.opt.g_network_path)
             self.load_networkD(self.opt.d_network_path)
         else:
             init_network(self.netD)
-            init_network(self.netG)
+            init_network(self.netGs)
     
     def draft_data(self, input, target):
         '''process input-data'''
@@ -157,6 +161,16 @@ class _competitionGan(_baseModel):
         if not os.path.exists(self.savepath):
             os.makedirs(self.savepath)
         self.save_image(fake, cnt, self.savepath)
+
+
+    def load_networkG(self, g_network_path):
+        '''load network parameters of netG and netD
+
+        @Params:
+        - g_network_path: the path of netG
+        '''
+        for netG in self.netGs:
+            netG.load_state_dict(torch.load(g_network_path))
     
     def save_network(self, it, savepath):
         log.info("Saving netG - [epochs: {}  cnt: {}  index: {}] in {}".format(it, self.cnt, self.best_netG_index, self.savepath))

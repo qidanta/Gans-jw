@@ -130,5 +130,5 @@ Still want competition gan within netGs.
 
 ### TODO
 
-* [ ] - complete `baseMuitlModel.py`
-
+* [x] - complete `baseMuitlModel.py`
+* [ ] - add pre-train mode
